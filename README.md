@@ -1,2 +1,2 @@
 # ocrMachine
-a web-app canvas for optical character recogniztion
+a web-app canvas for optical character recognition
