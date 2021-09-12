@@ -1,0 +1,11 @@
+Linear and Polynomial Regression
+Support Vector Regression
+Decision Tree and Random forest regression
+logistic regression
+KNN
+SVM
+Naive Bayes
+Decision Tree & Random forest classification
+kmeans clustering
+nlp
+artificial and convolutional neural networks

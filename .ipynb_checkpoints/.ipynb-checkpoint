@@ -1,0 +1,169 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import tensorflow_datasets as tfds\n",
+    "import tensorflow as tf\n",
+    "import keras\n",
+    "import numpy as np\n",
+    "import pickle "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def load_prep_data():\n",
+    "    emnist_data = tfds.load(\"emnist\", builder_kwargs = {\"config\": \"balanced\"}, batch_size = -1)\n",
+    "        \n",
+    "    emnist_train, emnist_test = emnist_data[\"train\"], emnist_data[\"test\"]\n",
+    "    \n",
+    "    emnist_train = tfds.as_numpy(emnist_train)\n",
+    "    emnist_test = tfds.as_numpy(emnist_test)\n",
+    "    \n",
+    "    xtrain, ytrain = emnist_train[\"image\"], emnist_train[\"label\"]\n",
+    "    xtest, ytest = emnist_test[\"image\"], emnist_test[\"label\"]\n",
+    "    \n",
+    "    xtrain, xtest = xtrain.astype(np.float32), xtest.astype(np.float32)\n",
+    "    xtrain = xtrain/255.0\n",
+    "    xtest = xtest/255.0\n",
+    "    \n",
+    "    ytrain = keras.utils.to_categorical(ytrain, num_classes = 47)\n",
+    "    ytest = keras.utils.to_categorical(ytest, num_classes = 47)\n",
+    "    \n",
+    "    return xtrain, ytrain, xtest, ytest"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def build_model():\n",
+    "    l = keras.layers\n",
+    "\n",
+    "    model = keras.models.Sequential()\n",
+    "\n",
+    "    model.add(l.Conv2D(filters=64, kernel_size=7, activation='relu', padding = \"same\", input_shape=[28,28,1]))\n",
+    "    model.add(l.MaxPool2D(pool_size=2))\n",
+    "\n",
+    "    model.add(l.Conv2D(filters=128, kernel_size=3, activation='relu', padding = \"same\"))\n",
+    "    model.add(l.Conv2D(filters=128, kernel_size=3, activation='relu'))\n",
+    "    model.add(l.MaxPool2D(pool_size=2))\n",
+    "\n",
+    "    model.add(l.Conv2D(filters=256, kernel_size=3, activation='relu', padding = \"same\"))\n",
+    "    model.add(l.Conv2D(filters=256, kernel_size=3, activation='relu', padding = \"same\"))\n",
+    "    model.add(l.MaxPool2D(pool_size=2))\n",
+    "          \n",
+    "    model.add(l.Flatten())\n",
+    "    model.add(l.Dense(256, activation='relu'))\n",
+    "    model.add(l.Dropout(0.5))\n",
+    "    model.add(l.Dense(128, activation='relu'))\n",
+    "    model.add(l.Dropout(0.5))\n",
+    "    model.add(l.Dense(47, activation='softmax'))\n",
+    "\n",
+    "    model.compile(optimizer=\"adam\", loss='categorical_crossentropy', metrics=['accuracy'])\n",
+    "    \n",
+    "    return model"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Epoch 1/15\n",
+      "221/221 [==============================] - 857s 4s/step - loss: 1.9246 - accuracy: 0.4621 - val_loss: 0.5375 - val_accuracy: 0.8239\n",
+      "Epoch 2/15\n",
+      "221/221 [==============================] - 868s 4s/step - loss: 0.6647 - accuracy: 0.7899 - val_loss: 0.4063 - val_accuracy: 0.8669\n",
+      "Epoch 3/15\n",
+      "221/221 [==============================] - 864s 4s/step - loss: 0.5175 - accuracy: 0.8328 - val_loss: 0.3766 - val_accuracy: 0.8687\n",
+      "Epoch 4/15\n",
+      "221/221 [==============================] - 870s 4s/step - loss: 0.4465 - accuracy: 0.8524 - val_loss: 0.3633 - val_accuracy: 0.8771\n",
+      "Epoch 5/15\n",
+      "221/221 [==============================] - 875s 4s/step - loss: 0.4141 - accuracy: 0.8617 - val_loss: 0.3420 - val_accuracy: 0.8846\n",
+      "Epoch 6/15\n",
+      "221/221 [==============================] - 1007s 5s/step - loss: 0.3789 - accuracy: 0.8714 - val_loss: 0.3484 - val_accuracy: 0.8844\n",
+      "Epoch 7/15\n",
+      "221/221 [==============================] - 882s 4s/step - loss: 0.3601 - accuracy: 0.8753 - val_loss: 0.3381 - val_accuracy: 0.8864\n",
+      "Epoch 8/15\n",
+      "221/221 [==============================] - 1105s 5s/step - loss: 0.3404 - accuracy: 0.8818 - val_loss: 0.3368 - val_accuracy: 0.8886\n",
+      "Epoch 9/15\n",
+      "221/221 [==============================] - 1076s 5s/step - loss: 0.3268 - accuracy: 0.8854 - val_loss: 0.3333 - val_accuracy: 0.8876\n",
+      "Epoch 10/15\n",
+      "221/221 [==============================] - 1390s 6s/step - loss: 0.3119 - accuracy: 0.8898 - val_loss: 0.3331 - val_accuracy: 0.8901\n",
+      "Epoch 11/15\n",
+      "221/221 [==============================] - 13994s 63s/step - loss: 0.2957 - accuracy: 0.8932 - val_loss: 0.3327 - val_accuracy: 0.8918\n",
+      "Epoch 12/15\n",
+      "221/221 [==============================] - 1241s 6s/step - loss: 0.2871 - accuracy: 0.8955 - val_loss: 0.3354 - val_accuracy: 0.8941\n",
+      "Epoch 13/15\n",
+      "221/221 [==============================] - 885s 4s/step - loss: 0.2764 - accuracy: 0.8984 - val_loss: 0.3284 - val_accuracy: 0.8923\n",
+      "Epoch 14/15\n",
+      "221/221 [==============================] - 875s 4s/step - loss: 0.2644 - accuracy: 0.9018 - val_loss: 0.3522 - val_accuracy: 0.8922\n",
+      "Epoch 15/15\n",
+      "221/221 [==============================] - 863s 4s/step - loss: 0.2610 - accuracy: 0.9027 - val_loss: 0.3469 - val_accuracy: 0.8918\n"
+     ]
+    },
+    {
+     "ename": "TypeError",
+     "evalue": "cannot pickle '_thread.RLock' object",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[1;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[1;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
+      "\u001b[1;32m<ipython-input-4-1da1e1674c3a>\u001b[0m in \u001b[0;36m<module>\u001b[1;34m\u001b[0m\n\u001b[0;32m      5\u001b[0m \u001b[0mmodel\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mfit\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mx\u001b[0m \u001b[1;33m=\u001b[0m \u001b[0mxtrain\u001b[0m\u001b[1;33m,\u001b[0m \u001b[0my\u001b[0m \u001b[1;33m=\u001b[0m \u001b[0mytrain\u001b[0m\u001b[1;33m,\u001b[0m \u001b[0mvalidation_data\u001b[0m \u001b[1;33m=\u001b[0m \u001b[1;33m(\u001b[0m\u001b[0mxtest\u001b[0m\u001b[1;33m,\u001b[0m \u001b[0mytest\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m,\u001b[0m \u001b[0mepochs\u001b[0m \u001b[1;33m=\u001b[0m \u001b[1;36m15\u001b[0m\u001b[1;33m,\u001b[0m \u001b[0mbatch_size\u001b[0m \u001b[1;33m=\u001b[0m \u001b[1;36m512\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m      6\u001b[0m \u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m----> 7\u001b[1;33m \u001b[0mpickle\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mdump\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mmodel\u001b[0m\u001b[1;33m,\u001b[0m \u001b[0mopen\u001b[0m\u001b[1;33m(\u001b[0m\u001b[1;34m\"model.pkl\"\u001b[0m\u001b[1;33m,\u001b[0m \u001b[1;34m'wb'\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0m",
+      "\u001b[1;31mTypeError\u001b[0m: cannot pickle '_thread.RLock' object"
+     ]
+    }
+   ],
+   "source": [
+    "xtrain, ytrain, xtest, ytest = load_prep_data() \n",
+    "\n",
+    "model = build_model()\n",
+    "\n",
+    "model.fit(x = xtrain, y = ytrain, validation_data = (xtest, ytest), epochs = 15, batch_size = 512)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "tf.keras.models.save_model(model, \"model.hdf5\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
